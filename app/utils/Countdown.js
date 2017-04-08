@@ -1,47 +1,35 @@
-import React from 'react';
-
 /**
  * A Countdown component that passes its state in seconds to all of its children
+ * Callback that is called every second
  */
-export default class Countdown {
-  
-  static propTypes = {
-    seconds: React.PropTypes.number.isRequired
-  };
-  
-  constructor (seconds) {
+class Countdown {
+
+  constructor(seconds) {
     this.seconds = seconds;
-    this.startCountdown();
   }
-  
-  startCountdown () {
-    
-  }
-  
-  componentDidMount () {
+
+  start(callEverySecond, callWhenFinished) {
+    this.callEverySecond = callEverySecond;
+    this.callWhenFinished = callWhenFinished;
+
+    this.countDown();
     this.timerID = setInterval(() => this.countDown(), 1000);
+    return this;
   }
-  
-  componentWillUnmount () {
+
+  stop() {
     clearInterval(this.timerID);
   }
-  
-  countDown () {
-    this.setState({
-      seconds: this.state.seconds - 1
-    })
+
+  countDown() {
+    this.callEverySecond(this.seconds);
+
+    this.seconds -= 1;
+    if (this.seconds === -1) {
+      this.callWhenFinished();
+      this.stop();
+    }
   }
-  
-  render() {
-    const childrenWithProps = React.Children.map(this.props.children,
-      (child) => React.cloneElement(child, {
-        seconds: this.state.seconds
-      }));
-    
-    return (
-      <div>
-        {childrenWithProps}
-      </div>
-  )
-  }
-};
+}
+
+export default Countdown;
