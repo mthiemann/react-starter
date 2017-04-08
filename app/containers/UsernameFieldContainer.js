@@ -1,7 +1,8 @@
 import React from 'react';
 
+import userStore from '../stores/UserStore';
+import * as UserActions from '../actions/UserActions';
 import ButtonField from '../components/ButtonField';
-
 
 const propTypes = {
   minUsers: React.PropTypes.number,
@@ -21,34 +22,26 @@ class UsernameFieldContainer extends React.Component {
 
   constructor(props) {
     super(props);
-
-    this.keyCounter = 0;
-
-    const users = [];
-    for (let i = 0; i < this.props.minUsers; i += 1) {
-      users.push(this.getNewUser());
-    }
-
+    userStore.initialize(this.props.minUsers);
     this.state = {
-      users,
+      users: userStore.getAllUsers(),
       showRemoveOptions: false,
       showAddUserButton: true,
     };
+
+    this.getAllUsers = this.getAllUsers.bind(this);
   }
 
-  getNewUser() {
-    this.keyCounter += 1;
-    return {
-      key: this.keyCounter,
-      username: '',
-    };
+  componentWillMount() {
+    userStore.on('change', this.getAllUsers);
   }
 
-  handleUpdateUsername(e, idx) {
-    const users = this.state.users.slice();
-    users[idx].username = e.target.value;
+  componentWillUnmount() {
+    userStore.removeListener('change', this.getAllUsers);
+  }
 
-    this.setState({ users });
+  getAllUsers() {
+    this.setState({ users: userStore.getAllUsers() });
   }
 
   handleSubmit(e) {
@@ -72,14 +65,12 @@ class UsernameFieldContainer extends React.Component {
 
     // Add user if maximum number of users is not yet reached
     if (this.state.users.length < this.props.maxUsers) {
-      this.setState({
-        users: this.state.users.concat(this.getNewUser()),
-        showRemoveOptions: true,
-      });
+      UserActions.addUser();
+      this.setState({ showRemoveOptions: true });
     }
   }
 
-  handleRemoveUser(idx) {
+  handleRemoveUser(key) {
     // Remove remove options if minimum number of users is reached after removing
     if (this.state.users.length <= this.props.minUsers + 1) {
       this.setState({ showRemoveOptions: false });
@@ -87,10 +78,8 @@ class UsernameFieldContainer extends React.Component {
 
     // Remove user if minimum number of users is not yet reached
     if (this.state.users.length > this.props.minUsers) {
-      this.setState({
-        users: this.state.users.filter((user, index) => index !== idx),
-        showAddUserButton: true,
-      });
+      UserActions.removeUser(key);
+      this.setState({ showAddUserButton: true });
     }
   }
 
@@ -100,8 +89,8 @@ class UsernameFieldContainer extends React.Component {
         key={user.key}
         id={idx}
         showButton={this.state.showRemoveOptions}
-        onChange={e => this.handleUpdateUsername(e, idx)}
-        onButtonClick={() => this.handleRemoveUser(idx)}
+        onChange={e => UserActions.updateUser(user.key, e.target.value)}
+        onButtonClick={() => this.handleRemoveUser(user.key)}
       />
     ));
   }
