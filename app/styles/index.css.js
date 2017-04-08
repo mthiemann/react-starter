@@ -1,14 +1,14 @@
 const styles = {
   transparentBg: {
-    background: 'transparent'
+    background: 'transparent',
   },
   space: {
-    marginTop: '25px'
+    marginTop: '25px',
   },
   center: {
     float: 'none',
-    margin: '0 auto'
-  }
+    margin: '0 auto',
+  },
 };
 
 export default styles;

@@ -5,52 +5,54 @@ import ConfirmBattle from '../components/ConfirmBattle';
 import GithubHelper from '../utils/GithubHelper';
 
 
-export default class ConfirmBattleContainer extends React.Component {
-  
-  static contextTypes = {
-    router: React.PropTypes.object.isRequired
-  };
-  
-  constructor (props) {
+const contextTypes = {
+  router: React.PropTypes.object.isRequired,
+};
+
+class ConfirmBattleContainer extends React.Component {
+  constructor(props) {
     super(props);
-    
+
     this.state = {
       isLoading: true,
-      players: []
+      players: [],
     };
-    
+
     this.githubHelper = new GithubHelper();
   }
-  
-  componentDidMount () {
-    let users = this.context.router.location.state.users;
-    let usernames = users.map((user) => {
-      return user.username;
-    });
-    
-    this.githubHelper.getUsers(usernames).then((users) => {
+
+  componentDidMount() {
+    const users = this.context.router.location.state.users;
+    const usernames = users.map(user => user.username);
+
+    this.githubHelper.getUsers(usernames).then((gitHubUsers) => {
       this.setState({
         isLoading: false,
-        players: users
+        players: gitHubUsers,
       });
     });
   }
-  
-  handleInitiateBattle () {
+
+  handleInitiateBattle() {
     this.context.router.push({
       pathname: 'results',
       state: {
-        players: this.state.players
-      }
+        players: this.state.players,
+      },
     });
   }
-  
+
   render() {
     return (
       <ConfirmBattle
         isLoading={this.state.isLoading}
         players={this.state.players}
-        onInitiateBattle={() => this.handleInitiateBattle()} />
-    )
+        onInitiateBattle={() => this.handleInitiateBattle()}
+      />
+    );
   }
-};
+}
+
+ConfirmBattleContainer.contextTypes = contextTypes;
+
+export default ConfirmBattleContainer;

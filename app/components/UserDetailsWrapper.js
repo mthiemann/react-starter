@@ -1,19 +1,17 @@
 import React from 'react';
 
-class UserDetailsWrapper extends React.Component {
-  
-  static propTypes = {
-    header: React.PropTypes.string.isRequired
-  };
-  
-  render() {
-    return (
-      <div className='col-sm-3'>
-        <p className='lead'>{this.props.header}</p>
-        {this.props.children}
-      </div>
-    )
-  }
-}
+const propTypes = {
+  header: React.PropTypes.string.isRequired,
+  children: React.PropTypes.element.isRequired,
+};
+
+const UserDetailsWrapper = props => (
+  <div className="col-sm-3">
+    <p className="lead">{props.header}</p>
+    {props.children}
+  </div>
+);
+
+UserDetailsWrapper.propTypes = propTypes;
 
 export default UserDetailsWrapper;

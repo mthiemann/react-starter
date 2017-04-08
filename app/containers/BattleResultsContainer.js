@@ -5,74 +5,80 @@ import BattleResults from '../components/BattleResults';
 import GithubRater from '../utils/GithubRater';
 
 
+const propTypes = {
+  location: React.PropTypes.shape({
+    state: React.PropTypes.shape({
+      players: React.PropTypes.arrayOf(React.PropTypes.object),
+    }),
+  }).isRequired,
+};
+
 class BattleResultsContainer extends React.Component {
-  
-  constructor (props) {
+
+  constructor(props) {
     super(props);
     this.githubRater = new GithubRater();
-    
+
     this.state = {
       isLoading: true,
-      ranking: []
+      ranking: [],
     };
-    
+
     this.isTie = false;
   }
-  
-  componentDidMount () {
+
+  componentDidMount() {
     this.players = this.props.location.state.players;
-    let usernames = this.players.map((player) => {
-      return player.login;
-    });
-  
+    const usernames = this.players.map(player => player.login);
+
     this.setRanking(usernames);
   }
-  
+
+  setRanking(usernames) {
+    this.githubRater.getRatings(usernames).then((ratings) => {
+      const scoresAndPlayers = ratings.map((rating, idx) => ({
+        score: rating,
+        player: this.players[idx],
+      }));
+
+      let ranking = scoresAndPlayers;
+      this.setTieResult(ratings);
+      if (!this.isTie) {
+        ranking = scoresAndPlayers.sort((a, b) => b.score - a.score);
+      }
+
+      this.setState({
+        isLoading: false,
+        ranking,
+      });
+    });
+  }
+
   /**
-   * Checks whether an array of ratings holds the same values for each element
+   * Sets whether there is a tie or not on the 'isTie' property
    * @param ratings {array} of numbers
    * @returns {boolean}
    */
-  isATie(ratings) {
-    for(let i = 1; i < ratings.length; i++) {
-      if(ratings[i] !== ratings[i-1]) {
-        return false;
+  setTieResult(ratings) {
+    for (let i = 1; i < ratings.length; i += 1) {
+      if (ratings[i] !== ratings[i - 1]) {
+        this.isTie = false;
       }
     }
-    return true;
+    this.isTie = true;
   }
-  
-  setRanking (usernames) {
-    this.githubRater.getRatings(usernames).then((ratings) => {
-      
-      let scoresAndPlayers = ratings.map((rating, idx) => {
-        return {
-          score: rating,
-          player: this.players[idx]
-        }
-      });
-      
-      let ranking = scoresAndPlayers;
-      this.isTie = this.isATie(ratings);
-      if(!this.isTie) {
-        ranking = scoresAndPlayers.sort((a, b) => b.score - a.score);
-      }
-      
-      this.setState({
-        isLoading: false,
-        ranking: ranking
-      })
-    });
-  }
-  
+
   render() {
     return (
       <BattleResults
         isLoading={this.state.isLoading}
         ranking={this.state.ranking}
-        isTie={this.isTie} />
-    )
+        isTie={this.isTie}
+      />
+    );
   }
 }
+
+BattleResultsContainer.propTypes = propTypes;
 
 export default BattleResultsContainer;
